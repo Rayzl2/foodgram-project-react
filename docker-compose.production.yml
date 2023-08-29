@@ -12,7 +12,7 @@ services:
     volumes:
     - foodgram_pg_data:/var/lib/postgresql/data
   backend:
-    image: kritohanzo/foodgram_backend
+    image: warlollol/foodgram_backend
     env_file: .env
     depends_on:
       - db
@@ -20,13 +20,13 @@ services:
       - foodgram_static:/backend_static/
       - foodgram_media:/app/media
   frontend:
-    image: kritohanzo/foodgram_frontend
+    image: warlollol/foodgram_frontend
     env_file: .env
     command: cp -r /app/build/. /frontend_static/
     volumes:
       - foodgram_static:/frontend_static/
   nginx:
-    image: kritohanzo/foodgram_nginx
+    image: warlollol/foodgram_nginx
     ports:
       - 8000:80
     volumes:
