@@ -1,0 +1,233 @@
+### 
+# ↓ USER SIDE REQUESTS ↓
+### 
+
+GET http://127.0.0.1:8000/api/users/
+
+###
+
+POST http://127.0.0.1:8000/api/users/
+Content-Type: application/json
+
+{
+    "username": "ya",
+    "email": "ya@mail.ru",
+    "first_name": "ya",
+    "last_name": "ya",
+    "password": "arbuz123"
+}
+
+###
+
+GET http://127.0.0.1:8000/api/users/1/
+Authorization: Token daa2bffd152ed4883f3bb7e9535182a5399af930
+
+
+###
+
+GET http://127.0.0.1:8000/api/users/me/
+Authorization: Token 29308ae9507e831c06183073a6aa00ecb1b3e1c8
+
+###
+
+POST http://127.0.0.1:8000/api/users/set_password/
+Content-Type: application/json
+
+{
+    "new_password": "arbuz123",
+    "current_password": "arbuz1234"
+}
+
+###
+
+POST http://127.0.0.1:8000/api/auth/token/login/
+Content-Type: application/json
+
+{
+    "email": "ya@mail.ru",
+    "password": "arbuz1234"
+}
+
+###
+
+POST http://127.0.0.1:8000/api/auth/token/logout/
+Authorization: Token f003f113d3afb492295d419978843a09e7b5eaa5
+
+### 
+# ↓ SUBSCRIBE SIDE REQUESTS ↓
+### 
+
+GET http://127.0.0.1:8000/api/users/subscriptions/
+Authorization: Token f003f113d3afb492295d419978843a09e7b5eaa5
+
+###
+
+POST http://127.0.0.1:8000/api/users/1/subscribe/
+Authorization: Token f003f113d3afb492295d419978843a09e7b5eaa5
+
+###
+
+DELETE http://127.0.0.1:8000/api/users/1/subscribe/
+Authorization: Token f003f113d3afb492295d419978843a09e7b5eaa5
+
+### 
+# ↓ TAGS SIDE REQUESTS ↓
+### 
+
+GET http://127.0.0.1:8000/api/tags/
+
+### 
+
+GET http://127.0.0.1:8000/api/tags/1/
+
+###
+
+POST http://127.0.0.1:8000/api/tags/
+
+###
+
+PUT http://127.0.0.1:8000/api/tags/
+
+###
+
+PATCH http://127.0.0.1:8000/api/tags/
+
+###
+
+DELETE http://127.0.0.1:8000/api/tags/
+
+### 
+# ↓ INGREDIENTS SIDE REQUESTS ↓
+### 
+
+GET http://127.0.0.1:8000/api/ingredients/?name=абрикосовое ва
+
+### 
+
+GET http://127.0.0.1:8000/api/ingredients/1/
+
+###
+
+POST http://127.0.0.1:8000/api/ingredients/
+
+###
+
+PUT http://127.0.0.1:8000/api/ingredients/
+
+###
+
+PATCH http://127.0.0.1:8000/api/ingredients/
+
+###
+
+DELETE http://127.0.0.1:8000/api/ingredients/
+
+###
+# ↓ RECIPES SIDE REQUESTS ↓
+### 
+
+GET http://127.0.0.1:8000/api/recipes/?page=1&limit=6&tags=acid&tags=salty
+
+###
+
+
+GET http://127.0.0.1:8000/api/recipes/2/
+
+###
+
+POST http://127.0.0.1:8000/api/recipes/
+Authorization: token e06be64a2357bebbdb8277ec417afca41d996dd4
+Content-Type: application/json
+
+{
+    "name": "test",
+    "text": "test",
+    "tags": [
+        15,
+        2
+    ],
+    "ingredients": [
+        {
+            "id": 997748,
+            "amount": 20
+        },
+        {
+            "id": 75783,
+            "amount": 20
+        }
+    ],
+    "cooking_time": 45,
+    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZSURBVDhPY/hPIhjVQAwY1UAMGHQa/v8HAK+t/R8kTA7nAAAAAElFTkSuQmCC"
+}
+
+###
+
+PUT http://127.0.0.1:8000/api/recipes/15/
+Authorization: token daa2bffd152ed4883f3bb7e9535182a5399af930
+Content-Type: application/json
+
+{
+    "name": "кирилл под шубой",
+    "text": "Жоский салат",
+    "cooking_time": 45
+}
+
+###
+
+PATCH http://127.0.0.1:8000/api/recipes/2/
+Authorization: token f003f113d3afb492295d419978843a09e7b5eaa5
+Content-Type: application/json
+
+{
+    "tags": [
+        1, 3
+    ],
+    "ingredients": [
+        {
+        "id": 748,
+        "name": "крыжовник",
+        "measurement_unit": "г",
+        "amount": 20
+        },
+        {
+        "id": 753,
+        "name": "кукуруза обжаренная кикос",
+        "measurement_unit": "г",
+        "amount": 20
+        }
+    ],
+    "name": "кирилл под шубой",
+    "text": "Жоский салат",
+    "cooking_time": 50
+}
+
+###
+# ↓ SHOPPING CART SIDE REQUESTS ↓
+### 
+
+
+POST http://127.0.0.1:8000/api/recipes/2/shopping_cart/
+Authorization: Token daa2bffd152ed4883f3bb7e9535182a5399af930
+
+###
+
+DELETE http://127.0.0.1:8000/api/recipes/2/shopping_cart/
+Authorization: Token daa2bffd152ed4883f3bb7e9535182a5399af930
+
+###
+
+GET http://127.0.0.1:8000/api/recipes/download_shopping_cart/
+
+###
+# ↓ FAVORITE CART SIDE REQUESTS ↓
+### 
+
+
+POST http://127.0.0.1:8000/api/recipes/2/favorite/
+Authorization: Token daa2bffd152ed4883f3bb7e9535182a5399af930
+
+###
+
+DELETE http://127.0.0.1:8000/api/recipes/2/favorite/
+Authorization: Token daa2bffd152ed4883f3bb7e9535182a5399af930
+
