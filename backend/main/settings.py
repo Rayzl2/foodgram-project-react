@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
-
 from dotenv import load_dotenv
-
 
 load_dotenv()
 
@@ -14,7 +12,7 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(
     ","
 )
 

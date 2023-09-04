@@ -1,14 +1,28 @@
+from users.models import Subscribe, User
 from django.contrib import admin
 
-from users.models import Subscribe, User
 
+admin.site.site_header = "Foodgram Admin"
 
-admin.site.site_header = "Администрирование Foodgram"
-EMPTY_VALUE_DISPLAY = "—"
+@admin.register(Subscribe)
+class SubscribeConfig(admin.ModelAdmin):
 
+    search_fields = ["subscriber__username", "author__username"]
+    list_display = ["id", "subscriber", "author"]
+    empty_value_display = "—"
+
+    def get_queryset(self, request):
+        queryset = (
+            super(SubscribeConfig, self)
+            .get_queryset(request)
+            .select_related('author', 'subscriber')
+        )
+        
+        return queryset
 
 @admin.register(User)
 class UserConfig(admin.ModelAdmin):
+    
     list_display = [
         "id",
         "username",
@@ -17,21 +31,7 @@ class UserConfig(admin.ModelAdmin):
         "last_name",
         "is_staff",
     ]
-    list_display_links = ["id", "username", "email"]
+
     search_fields = ["username", "email"]
-    empty_value_display = EMPTY_VALUE_DISPLAY
-
-
-@admin.register(Subscribe)
-class SubscribeConfig(admin.ModelAdmin):
-    list_display = ["id", "subscriber", "author"]
-    search_fields = ["subscriber__username", "author__username"]
-    empty_value_display = EMPTY_VALUE_DISPLAY
-
-    def get_queryset(self, request):
-        queryset = (
-            super(SubscribeConfig, self)
-            .get_queryset(request)
-            .select_related('author', 'subscriber')
-        )
-        return queryset
+    list_display_links = ["id", "username", "email"]
+    empty_value_display = "—"

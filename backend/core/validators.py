@@ -1,19 +1,15 @@
 import re
-
 from django.core.exceptions import ValidationError
 
 
-def validate_username(value: str) -> str:
-    """Функция-валидатор, проверяет,
-    что пользователь корректно указал username.
-
-    Подразумевается, что username может состоять
-    только из букв латинского алфавита,
-    цифр и нижнего подчёркивания.
-    """
-    if value.lower() == "me":
+def validate_username(res: str) -> str:
+    
+    if res.lower() == "me":
         raise ValidationError("Недопустимое имя пользователя!")
+    
     regex = re.compile("[^a-zA-Z0-9_]+")
-    if regex.search(value):
-        raise ValidationError("Некорректные символы в username")
-    return value
+    
+    if regex.search(res):
+        raise ValidationError("Присутствуют недопустимые символы в поле username")
+    
+    return res

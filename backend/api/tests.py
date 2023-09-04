@@ -1,108 +1,101 @@
 import shutil
-import tempfile
-from copy import deepcopy
-
-from rest_framework import status
-from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient, APITestCase, override_settings
-
-from django.urls import reverse
-
-from core.utils import create_ingredients
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscribe, User
-
+from rest_framework.test import APIClient, APITestCase, override_settings
+import tempfile
+from copy import deepcopy
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from django.urls import reverse
+from core.utils import create_ingredients
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
 
 class CreateUserTest(APITestCase):
     def test_can_create_user(self):
-        """
-        Проверяем, что пользователь может зарегистрироваться.
-        """
+
         request_data = {
-            "email": "test@mail.ru",
+            "email": "example@mail.ru",
             "username": "test",
             "first_name": "Test",
-            "last_name": "Testov",
-            "password": "mysecretpassword",
+            "last_name": "Testik",
+            "password": "secretsecert",
         }
         response = self.client.post(reverse("api:users-list"), request_data)
         expected_data = {
-            "email": "test@mail.ru",
+            "email": "example@mail.ru",
             "username": "test",
             "first_name": "Test",
-            "last_name": "Testov",
+            "last_name": "Testik",
             "id": User.objects.filter(username="test").last().id,
         }
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED,
-            "Запрос возвращает не 201 код",
+            "not 201",
         )
         self.assertEqual(
             User.objects.all().count(),
             1,
-            "Пользователь не создается в базе данных",
+            "creating user error",
         )
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "body incorrect",
         )
 
 
 class CreataTokenTest(APITestCase):
     def setUp(self):
-        self.user = User.objects.create(email="test@mail.ru", username="test")
-        self.user_password = "mysecretpassword"
+        self.user = User.objects.create(email="example@mail.ru", username="test")
+        self.user_password = "secretsecert"
         self.user.set_password(self.user_password)
         self.user.save()
         self.token_count = Token.objects.all().count()
 
     def test_can_get_token(self):
-        """
-        Проверяем, что зарегистрированный пользователь может получить токен.
-        """
+
         request_data = {
             "email": self.user.email,
             "password": self.user_password,
         }
+
         response = self.client.post(reverse("api:token_login"), request_data)
         token_count = Token.objects.all().count()
         expected_data = {"auth_token": Token.objects.get(user=self.user).key}
+        
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED,
-            "Ответ API содержит не 201 код",
+            "not 201",
         )
+
         self.assertEqual(
             token_count,
             self.token_count + 1,
-            "Токен не создается в базе данных",
+            "token is invalid with creating in db",
         )
+
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "body incorrect",
         )
 
 
 class DestroyTokenTest(APITestCase):
     def setUp(self):
-        self.user = User.objects.create(email="test@mail.ru", username="test")
-        self.user.set_password("mysecretpassword")
+        self.user = User.objects.create(email="example@mail.ru", username="test")
+        self.user.set_password("secretsecert")
         self.user.save()
         self.token = Token.objects.create(user=self.user)
         self.token_count = Token.objects.all().count()
         self.client = APIClient()
 
     def test_auth_can_destroy_token(self):
-        """
-        Проверяем, что аутентифицированный пользователь
-        может уничтожить свой токен.
-        """
+
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
         response = self.client.post(reverse("api:token_logout"))
         token_count = Token.objects.all().count()
@@ -110,64 +103,62 @@ class DestroyTokenTest(APITestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_204_NO_CONTENT,
-            "Ответ API содержит не 204 код",
+            "not 204",
         )
         self.assertEqual(
             token_count,
             self.token_count - 1,
-            "Токен не удаляется из базы данных",
+            "token hasnt deleted in DB",
         )
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "body incorrect",
         )
 
     def test_noauth_cant_destroy_token(self):
-        """
-        Проверяем, что неаутентифицированный
-        пользователь не может уничтожить токен.
-        """
+        
         response = self.client.post(reverse("api:token_logout"))
         token_count = Token.objects.all().count()
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
-            "Ответ API содержит не 401 код",
+            "not 401",
         )
         self.assertEqual(
             token_count,
             self.token_count,
-            "Токен всё равно удалился из базы данных",
+            "token is deleted finally",
         )
         self.assertEqual(
-            {"detail": "Учетные данные не были предоставлены."},
+            {"response": "no details to return"},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "body incorrect",
         )
 
 
 class ListUsersTest(APITestCase):
+    
     def setUp(self):
+        
         self.user_1 = User.objects.create(
             username="test1",
-            email="test1@mail.ru",
-            first_name="Test",
-            last_name="Testov",
+            email="ex1@mail.ru",
+            first_name="testt",
+            last_name="testikk",
         )
+
         self.user_2 = User.objects.create(
             username="test2",
-            email="test2@mail.ru",
-            first_name="Test",
-            last_name="Testov",
+            email="ex2@mail.ru",
+            first_name="tes",
+            last_name="testi",
         )
 
     def test_can_list_users(self):
-        """
-        Проверяем, что любой пользователь
-        может получить информацию о других пользователях.
-        """
+
         response = self.client.get(reverse("api:users-list"))
+        
         expected_data = [
             {
                 "email": self.user_1.email,
@@ -186,38 +177,41 @@ class ListUsersTest(APITestCase):
                 "is_subscribed": False,
             },
         ]
+
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK,
-            "Запрос возвращает не 200 код",
+            "not 200",
         )
+        
         self.assertEqual(
             response.data.get("results"),
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "body incorrect",
         )
 
 
 class RetrieveUserTest(APITestCase):
+    
     def setUp(self):
+        
         self.user = User.objects.create(
             username="test",
-            email="test@mail.ru",
+            email="example@mail.ru",
             first_name="Test",
-            last_name="Testov",
+            last_name="Testik",
         )
+
         self.token = Token.objects.create(user=self.user)
         self.client = APIClient()
 
     def test_auth_can_retrieve_user(self):
-        """
-        Проверяем, что аутентифицированный пользователь
-        может получить информацию о другим пользователе.
-        """
+
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
         response = self.client.get(
             reverse("api:users-detail", args=[self.user.id])
         )
+
         expected_data = {
             "email": self.user.email,
             "username": self.user.username,
@@ -226,22 +220,22 @@ class RetrieveUserTest(APITestCase):
             "id": self.user.id,
             "is_subscribed": False,
         }
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            "Запрос возвращает не 200 код",
-        )
+
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "body incorrect",
         )
 
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            "not 200",
+        )
+
+
     def test_cant_retrieve_nonexistent_user(self):
-        """
-        Проверяем, что пользователь не может
-        получить информацию о несуществующем пользователе.
-        """
+
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
         response = self.client.get(
             reverse("api:users-detail", args=[self.user.id + 1])
@@ -254,7 +248,7 @@ class RetrieveUserTest(APITestCase):
         self.assertEqual(
             {"detail": "Страница не найдена."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_noauth_cant_retrieve_user(self):
@@ -273,7 +267,7 @@ class RetrieveUserTest(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -311,7 +305,7 @@ class CurrentUserTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_noauth_cant_get_current_user(self):
@@ -328,7 +322,7 @@ class CurrentUserTest(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -374,7 +368,7 @@ class SetPasswordUserTest(APITestCase):
         self.assertIn(
             "current_password",
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
         self.assertEqual(
             response.data,
@@ -402,7 +396,7 @@ class SetPasswordUserTest(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -442,7 +436,7 @@ class ListTagsTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -471,7 +465,7 @@ class RetrieveTagTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_cant_retrive_nonexistent_tag(self):
@@ -490,7 +484,7 @@ class RetrieveTagTest(APITestCase):
         self.assertEqual(
             {"detail": "Страница не найдена."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -528,7 +522,7 @@ class ListIngredientsTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_can_list_ingredients_by_name(self):
@@ -555,7 +549,7 @@ class ListIngredientsTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -585,7 +579,7 @@ class RetrieveIngredientTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_cant_retrive_nonexistent_ingredient(self):
@@ -604,7 +598,7 @@ class RetrieveIngredientTest(APITestCase):
         self.assertEqual(
             {"detail": "Страница не найдена."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -731,7 +725,7 @@ class ListRecipesTest(APITestCase):
         self.assertEqual(
             response.data.get("results"),
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -802,7 +796,7 @@ class RetrieveRecipeTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_can_retrieve_nonexistent_recipe(self):
@@ -821,7 +815,7 @@ class RetrieveRecipeTest(APITestCase):
         self.assertEqual(
             {"detail": "Страница не найдена."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -921,7 +915,7 @@ class CreateRecipeTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_noauth_cant_create_recipe(self):
@@ -940,7 +934,7 @@ class CreateRecipeTest(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_cant_create_recipe_with_nonexistent_items(self):
@@ -962,7 +956,7 @@ class CreateRecipeTest(APITestCase):
         self.assertIn(
             "tags",
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
         new_request_data = deepcopy(self.request_data)
         new_request_data["ingredients"] = [
@@ -979,7 +973,7 @@ class CreateRecipeTest(APITestCase):
         self.assertEqual(
             {"ingredients": "Такой ингредиент не существует."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -1083,7 +1077,7 @@ class UpdateRecipeTest(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_noauth_cant_update_recipe(self):
@@ -1103,7 +1097,7 @@ class UpdateRecipeTest(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_noauthor_cant_update_recipe(self):
@@ -1128,7 +1122,7 @@ class UpdateRecipeTest(APITestCase):
                 "для выполнения данного действия."
             },
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_author_cant_update_recipe_with_nonexistent_items(self):
@@ -1151,7 +1145,7 @@ class UpdateRecipeTest(APITestCase):
         self.assertIn(
             "tags",
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
         new_request_data = deepcopy(self.request_data)
         new_request_data["ingredients"] = [
@@ -1172,7 +1166,7 @@ class UpdateRecipeTest(APITestCase):
         self.assertEqual(
             {"ingredients": "Такой ингредиент не существует."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_author_cant_update_recipe_with_uncorrect_data(self):
@@ -1197,7 +1191,7 @@ class UpdateRecipeTest(APITestCase):
         self.assertIn(
             "ingredients",
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -1267,7 +1261,7 @@ class DeleteRecipe(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_noauthor_cant_delete_recipe(self):
@@ -1294,7 +1288,7 @@ class DeleteRecipe(APITestCase):
                 "для выполнения данного действия."
             },
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_author_cant_delete_nonexistent_recipe(self):
@@ -1313,7 +1307,7 @@ class DeleteRecipe(APITestCase):
         self.assertEqual(
             {"detail": "Страница не найдена."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -1354,7 +1348,7 @@ class AddFavorite(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
         self.assertEqual(
             Favorite.objects.all().count(),
@@ -1385,7 +1379,7 @@ class AddFavorite(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_auth_user_cant_add_existent_recipe_to_favorites(self):
@@ -1408,7 +1402,7 @@ class AddFavorite(APITestCase):
         self.assertEqual(
             response.data,
             {"errors": "Рецепт уже в избранном"},
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -1466,20 +1460,17 @@ class DeleteFavorite(APITestCase):
         self.assertEqual(
             Favorite.objects.all().count(),
             1,
-            "Запись о добавлении пользователем рецепта "
-            "всё равно удалилась из базы данных",
+            """Запись о добавлении пользователем рецепта
+            всё равно удалилась из базы данных"""
         )
         self.assertEqual(
-            {"detail": "Учетные данные не были предоставлены."},
+            {"response": "no auth data"},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "body incorrect",
         )
 
     def test_auth_user_cant_delete_nonexistent_recipe_from_favorites(self):
-        """
-        Проверяем, что аунтифицированный пользователь
-        не может удалить рецепт из избранного, если его там нет.
-        """
+
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
         response = self.client.delete(
             reverse("api:recipes-favorite", args=[self.recipe.id])
@@ -1494,8 +1485,8 @@ class DeleteFavorite(APITestCase):
         )
         self.assertEqual(
             response.data,
-            {"errors": "Такого рецепта нет в избранном"},
-            "Тело ответа API не соответствует документации",
+            {"error": "no recipe in favorite"},
+            "Body incorreCT",
         )
 
 
@@ -1536,7 +1527,7 @@ class AddShoppingCart(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
         self.assertEqual(
             ShoppingCart.objects.all().count(),
@@ -1567,7 +1558,7 @@ class AddShoppingCart(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_auth_user_cant_add_existent_recipe_to_shopping_cart(self):
@@ -1590,7 +1581,7 @@ class AddShoppingCart(APITestCase):
         self.assertEqual(
             response.data,
             {"errors": "Рецепт уже в списке покупок"},
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -1654,7 +1645,7 @@ class DeleteShoppingCart(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_auth_user_cant_delete_nonexistent_recipe_from_shopping_cart(self):
@@ -1677,7 +1668,7 @@ class DeleteShoppingCart(APITestCase):
         self.assertEqual(
             response.data,
             {"errors": "Такого рецепта нет в списке покупок"},
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -1738,7 +1729,7 @@ class AddSubscribe(APITestCase):
         self.assertEqual(
             response.data,
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
         self.assertEqual(
             Subscribe.objects.all().count(),
@@ -1769,7 +1760,7 @@ class AddSubscribe(APITestCase):
         self.assertEqual(
             {"detail": "Учетные данные не были предоставлены."},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_auth_user_cant_add_existent_subscribe(self):
@@ -1792,44 +1783,46 @@ class AddSubscribe(APITestCase):
         self.assertEqual(
             response.data,
             {"errors": "Вы уже подписаны на автора"},
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_auth_user_cant_subscribe_yourself(self):
-        """
-        Проверяем, что аунтифицированный пользователь
-        не может подписаться на самого себя.
-        """
+
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
         response = self.client.post(
             reverse("api:users-subscribe", args=[self.user.id])
         )
+
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST,
             "Запрос возвращает не 400 код",
         )
+
         self.assertEqual(
             response.data,
             {"errors": "Вы не можете подписаться на себя"},
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
 class DeleteSubscribe(APITestCase):
     def setUp(self):
+
         self.user = User.objects.create(
             username="test",
             email="test@mail.ru",
             first_name="Test",
             last_name="Testov",
         )
+
         self.other_user = User.objects.create(
             username="other_user",
             email="other_user@mail.ru",
             first_name="Test",
             last_name="Testov",
         )
+
         self.token = Token.objects.create(user=self.user)
         self.recipe = Recipe.objects.create(
             author=self.other_user,
@@ -1837,55 +1830,56 @@ class DeleteSubscribe(APITestCase):
             text="recipetext",
             cooking_time=45,
         )
+
         self.subscribe = Subscribe.objects.create(
             subscriber=self.user, author=self.other_user
         )
+
         self.client = APIClient()
 
     def test_auth_user_can_unsubscribe(self):
-        """
-        Проверяем, что аунтифицированный пользователь
-        может отписаться от другого пользователя.
-        """
+
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
         response = self.client.delete(
             reverse("api:users-subscribe", args=[self.other_user.id])
         )
+        
         self.assertEqual(
             response.status_code,
             status.HTTP_204_NO_CONTENT,
-            "Запрос возвращает не 204 код",
+            "not 204"
         )
+
         self.assertEqual(
             Subscribe.objects.all().count(),
             0,
-            "Запись о добавлении пользователем рецепта "
-            "не удалилась из базы данных",
+            """Запись о добавлении пользователем рецепта
+               не удалилась из базы данных"""
         )
 
     def test_noauth_user_cant_unsubscribet(self):
-        """
-        Проверяем, что неаунтифицированный пользователь
-        не может отписаться от другого пользователя.
-        """
+
         response = self.client.delete(
             reverse("api:users-subscribe", args=[self.other_user.id])
         )
+
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
-            "Запрос возвращает не 401 код",
+            "not 401",
         )
+
         self.assertEqual(
             Subscribe.objects.all().count(),
             1,
-            "Запись о добавлении пользователем рецепта "
-            "всё равно удалилась из базы данных",
+            """Запись о добавлении пользователем рецепта
+               всё равно удалилась из базы данных"""
         )
+
         self.assertEqual(
-            {"detail": "Учетные данные не были предоставлены."},
+            {"detail": "no auth data"},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_auth_user_cant_delete_nonexistent_subscribe(self):
@@ -1908,30 +1902,35 @@ class DeleteSubscribe(APITestCase):
         self.assertEqual(
             response.data,
             {"errors": "Вы не были подписаны на автора"},
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
 class ListSubscriptions(APITestCase):
+   
     def setUp(self):
+        
         self.user = User.objects.create(
             username="test",
             email="test@mail.ru",
             first_name="Test",
             last_name="Testov",
         )
+
         self.other_user_1 = User.objects.create(
             username="other_user_1",
             email="other_user_1@mail.ru",
             first_name="Test",
             last_name="Testov",
         )
+
         self.other_user_2 = User.objects.create(
             username="other_user_2",
             email="other_user_2@mail.ru",
             first_name="Test",
             last_name="Testov",
         )
+
         self.token = Token.objects.create(user=self.user)
         self.recipe_1 = Recipe.objects.create(
             author=self.other_user_1,
@@ -1939,25 +1938,27 @@ class ListSubscriptions(APITestCase):
             text="recipetext",
             cooking_time=45,
         )
+
         self.recipe_2 = Recipe.objects.create(
             author=self.other_user_2,
             name="recipe",
             text="recipetext",
             cooking_time=45,
         )
+
         self.subscribe_1 = Subscribe.objects.create(
             subscriber=self.user, author=self.other_user_1
         )
+
         self.subscribe_2 = Subscribe.objects.create(
             subscriber=self.user, author=self.other_user_2
         )
+
         self.client = APIClient()
 
+
     def test_auth_user_can_show_subscriptions(self):
-        """
-        Проверяем, что аунтифицированный пользователь
-        может проверить свои подписки.
-        """
+
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
         expected_data = [
             {
@@ -2004,24 +2005,23 @@ class ListSubscriptions(APITestCase):
         self.assertEqual(
             response.data.get("results"),
             expected_data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
     def test_noauth_user_cant_show_subscriptions(self):
-        """
-        Проверяем, что неаунтифицированный пользователь
-        не может проверить подписки.
-        """
+
         response = self.client.get(reverse("api:users-subscriptions"))
+
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
-            "Запрос возвращает не 401 код",
+            "not 401",
         )
+
         self.assertEqual(
-            {"detail": "Учетные данные не были предоставлены."},
+            {"error": "no auth data"},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "Body incorreCT",
         )
 
 
@@ -2033,50 +2033,56 @@ class DownloadShoppingCart(APITestCase):
             first_name="Test",
             last_name="Testov",
         )
+
         self.token = Token.objects.create(user=self.user)
         self.recipe = Recipe.objects.create(
             author=self.user, name="recipe", text="recipetext", cooking_time=45
         )
+
         self.shopping_cart = ShoppingCart.objects.create(
             user=self.user, recipe=self.recipe
         )
+
         self.client = APIClient()
 
     def test_auth_user_can_download_shopping_cart(self):
-        """
-        Проверяем, что аунтифицированнный пользователь
-        может скачать список покупок.
-        """
+        
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
         response = self.client.get(
             reverse("api:recipes-download_shopping_cart")
         )
+
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK,
-            "Запрос возвращает не 200 код",
+            "not 200",
         )
+
         self.assertEqual(
             response.headers.get("Content-Type"),
             "text/plain; charset=utf-8",
-            "Запрос не инициализирует загрузку текстового файла",
+            "no init by txt file",
         )
 
     def test_noauth_user_cant_download_shopping_cart(self):
-        """
-        Проверяем, что неаунтифицированнный пользователь
-        не может скачать список покупок.
-        """
+
         response = self.client.get(
             reverse("api:recipes-download_shopping_cart")
         )
+                self.assertEqual(
+            {"error": "no auth data"},
+            response.data,
+            "Body incorreCT",
+        )
+
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
-            "Запрос возвращает не 401 код",
+            "not 401",
         )
+
         self.assertEqual(
-            {"detail": "Учетные данные не были предоставлены."},
+            {"error": "no auth data"},
             response.data,
-            "Тело ответа API не соответствует документации",
+            "body incorrect",
         )

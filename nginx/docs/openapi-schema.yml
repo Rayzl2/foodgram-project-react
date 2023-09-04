@@ -11,13 +11,13 @@ paths:
         - name: page
           required: false
           in: query
-          description: Номер страницы.
+          description: Номер страницы
           schema:
             type: integer
         - name: limit
           required: false
           in: query
-          description: Количество объектов на странице.
+          description: Кол-во объектов на странице
           schema:
             type: integer
       responses:
@@ -30,24 +30,24 @@ paths:
                   count:
                     type: integer
                     example: 123
-                    description: 'Общее количество объектов в базе'
+                    description: 'Общее кол-во объектов в БД'
                   next:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/users/?page=4
+                    example: http://foodgram.org/api/users/?page=2
                     description: 'Ссылка на следующую страницу'
                   previous:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/users/?page=2
+                    example: http://foodgram.org/api/users/?page=1
                     description: 'Ссылка на предыдущую страницу'
                   results:
                     type: array
                     items:
                       $ref: '#/components/schemas/User'
-                    description: 'Список объектов текущей страницы'
+                    description: 'Список актуальных объектов текущей сессии'
           description: ''
       tags:
         - Пользователи
@@ -89,13 +89,13 @@ paths:
         - Теги
   /api/tags/{id}/:
     get:
-      operationId: Получение тега
+      operationId: Получить тег
       description: ''
       parameters:
         - name: id
           in: path
           required: true
-          description: "Уникальный идентификатор этого Тега."
+          description: "Уникальный идентификатор этого Тега"
           schema:
             type: string
       responses:
@@ -117,39 +117,39 @@ paths:
         - name: page
           required: false
           in: query
-          description: Номер страницы.
+          description: Номер страницы
           schema:
             type: integer
         - name: limit
           required: false
           in: query
-          description: Количество объектов на странице.
+          description: Количество объектов на странице
           schema:
             type: integer
         - name: is_favorited
           required: false
           in: query
-          description: Показывать только рецепты, находящиеся в списке избранного.
+          description: Показывать только рецепты, находящиеся в списке избранного
           schema:
             type: integer
             enum: [0, 1]
         - name: is_in_shopping_cart
           required: false
           in: query
-          description: Показывать только рецепты, находящиеся в списке покупок.
+          description: Показывать только рецепты, находящиеся в списке покупок
           schema:
             type: integer
             enum: [0, 1]
         - name: author
           required: false
           in: query
-          description: Показывать рецепты только автора с указанным id.
+          description: Показывать рецепты только автора с указанным id
           schema:
             type: integer
         - name: tags
           required: false
           in: query
-          description: Показывать рецепты только с указанными тегами (по slug)
+          description: Показывать рецепты только с указанными тегами
           example: 'lunch&tags=breakfast'
 
           schema:
@@ -166,18 +166,18 @@ paths:
                   count:
                     type: integer
                     example: 123
-                    description: 'Общее количество объектов в базе'
+                    description: 'Суммарное количество объектов в БД'
                   next:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/recipes/?page=4
+                    example: http://foodgram.example.org/api/recipes/?page=3
                     description: 'Ссылка на следующую страницу'
                   previous:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/recipes/?page=2
+                    example: http://foodgram.example.org/api/recipes/?page=1
                     description: 'Ссылка на предыдущую страницу'
                   results:
                     type: array
